@@ -1,0 +1,32 @@
+MIT License
+
+Copyright (c) 2026 eren-agalar and FurUltimate contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+Hardware notice: stress tests and benchmarks run the GPU at high power and
+temperature. Despite the built-in safety limits, all risk of running GPU
+workloads (insufficient cooling, overclocking, faulty hardware or power supply)
+is borne by the user. Scores are not a hardware diagnosis.
+Third-party components are licensed under their own terms (THIRD_PARTY_NOTICES.txt).
+
+Donanım uyarısı: Stres testleri ve benchmark'lar GPU'yu yüksek güç ve sıcaklıkta
+çalıştırır. Yerleşik güvenlik sınırlarına rağmen kullanımdan doğabilecek tüm
+riskler kullanıcıya aittir. Skorlar bir donanım arızası teşhisi değildir.

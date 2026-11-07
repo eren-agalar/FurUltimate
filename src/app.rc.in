@@ -1,0 +1,40 @@
+#include <windows.h>
+#include "@CMAKE_SOURCE_DIR@/src/resource.h"
+
+IDI_APP_ICON ICON "@CMAKE_SOURCE_DIR@/assets/app.ico"
+1 RT_MANIFEST "@CMAKE_SOURCE_DIR@/src/app.manifest"
+
+IDR_FONT_REGULAR       RCDATA "@CMAKE_SOURCE_DIR@/assets/fonts/Inter-Regular.ttf"
+IDR_FONT_MEDIUM        RCDATA "@CMAKE_SOURCE_DIR@/assets/fonts/Inter-Medium.ttf"
+IDR_FONT_SEMIBOLD      RCDATA "@CMAKE_SOURCE_DIR@/assets/fonts/Inter-SemiBold.ttf"
+IDR_FONT_DISPLAY_LIGHT RCDATA "@CMAKE_SOURCE_DIR@/assets/fonts/InterDisplay-Light.ttf"
+IDR_FONT_DISPLAY_SEMI  RCDATA "@CMAKE_SOURCE_DIR@/assets/fonts/InterDisplay-SemiBold.ttf"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+ PRODUCTVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE 0x0L
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "041F04B0"
+    BEGIN
+      VALUE "CompanyName", "FurUltimate"
+      VALUE "FileDescription", "FurUltimate - GPU Benchmark ve Stres Testi"
+      VALUE "FileVersion", "@PROJECT_VERSION@"
+      VALUE "InternalName", "FurUltimate"
+      VALUE "LegalCopyright", "Copyright (C) 2026 FurUltimate"
+      VALUE "OriginalFilename", "FurUltimate.exe"
+      VALUE "ProductName", "FurUltimate"
+      VALUE "ProductVersion", "@PROJECT_VERSION@"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x41F, 1200
+  END
+END
