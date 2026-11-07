@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/eren-agalar/FurMarkUltimate/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/eren-agalar/FurMarkUltimate?style=for-the-badge&color=ff5a2e"></a>
+  <a href="https://github.com/eren-agalar/FurUltimate/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/eren-agalar/FurUltimate?style=for-the-badge&color=ff5a2e"></a>
   <img alt="Windows 10/11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-8b5cff?style=for-the-badge&logo=windows">
   <img alt="Direct3D 11 · DirectML" src="https://img.shields.io/badge/Direct3D%2011-DirectML-ff2d8a?style=for-the-badge">
   <a href="LICENSE.txt"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-ffc24a?style=for-the-badge"></a>
@@ -31,7 +31,7 @@ The interface is in Turkish by default, with English available in Settings.
 
 ## Download
 
-Get the latest build from **[Releases](https://github.com/eren-agalar/FurMarkUltimate/releases/latest)**:
+Get the latest build from **[Releases](https://github.com/eren-agalar/FurUltimate/releases/latest)**:
 
 | File | What it is |
 |---|---|
@@ -141,7 +141,7 @@ Arayüz varsayılan olarak Türkçedir; Ayarlar'dan İngilizceye geçilebilir.
 
 ## İndirme
 
-Son sürümü **[Releases](https://github.com/eren-agalar/FurMarkUltimate/releases/latest)** sayfasından indirin:
+Son sürümü **[Releases](https://github.com/eren-agalar/FurUltimate/releases/latest)** sayfasından indirin:
 
 | Dosya | Açıklama |
 |---|---|
