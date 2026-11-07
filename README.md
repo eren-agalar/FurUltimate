@@ -35,8 +35,8 @@ Get the latest build from **[Releases](https://github.com/eren-agalar/FurUltimat
 
 | File | What it is |
 |---|---|
-| `FurUltimate-<version>-Setup.exe` | Installer with Start-menu shortcut and uninstaller (recommended) |
-| `FurUltimate-<version>-win64.exe` | Standalone single-file app. No install; just run it |
+| `FurUltimate-<version>-Setup.zip` | Installer (`Setup.exe` inside) with Start-menu shortcut and uninstaller (recommended) |
+| `FurUltimate-<version>-win64-exe.zip` | Standalone single-file app (`.exe` inside). No install; just run it |
 | `FurUltimate-<version>-win64-portable.zip` | Portable folder with the app, docs and leaderboard server schema |
 
 **Requirements:** Windows 10 1903+ or Windows 11 (64-bit) and a Direct3D 11 GPU. The AI test uses the DirectML that ships with Windows. No extra runtimes are needed.
@@ -91,7 +91,7 @@ cmake --build build -j
 ./tools/build_release.sh
 ```
 
-The release script produces the installer, the standalone exe, the portable ZIP and `SHA256SUMS.txt` in `dist/`.
+The release script produces the installer and the standalone exe (each also zipped), the portable ZIP and `SHA256SUMS.txt` in `dist/`.
 
 **Windows (Visual Studio 2022):**
 
@@ -145,8 +145,8 @@ Son sürümü **[Releases](https://github.com/eren-agalar/FurUltimate/releases/l
 
 | Dosya | Açıklama |
 |---|---|
-| `FurUltimate-<sürüm>-Setup.exe` | Başlat menüsü kısayolu ve kaldırıcı içeren kurulum paketi (önerilen) |
-| `FurUltimate-<sürüm>-win64.exe` | Tek dosyalık uygulama. Kurulum gerekmez, doğrudan çalıştırılır |
+| `FurUltimate-<sürüm>-Setup.zip` | Başlat menüsü kısayolu ve kaldırıcı içeren kurulum paketi (içinde `Setup.exe`, önerilen) |
+| `FurUltimate-<sürüm>-win64-exe.zip` | Tek dosyalık uygulama (içinde `.exe`). Kurulum gerekmez, doğrudan çalıştırılır |
 | `FurUltimate-<sürüm>-win64-portable.zip` | Uygulama, belgeler ve liderlik sunucusu şemasını içeren taşınabilir klasör |
 
 **Gereksinimler:** Windows 10 1903+ veya Windows 11 (64-bit) ve Direct3D 11 destekli bir ekran kartı. AI testi, Windows ile gelen DirectML'i kullanır. Ek bir çalışma zamanı kurmak gerekmez.
@@ -201,7 +201,7 @@ cmake --build build -j
 ./tools/build_release.sh
 ```
 
-Bu komut `dist/` altında kurulum paketini, tek exe'yi, taşınabilir ZIP'i ve `SHA256SUMS.txt` dosyasını üretir.
+Bu komut `dist/` altında kurulum paketini ve tek exe'yi (ikisinin ZIP'li hâliyle), taşınabilir ZIP'i ve `SHA256SUMS.txt` dosyasını üretir.
 
 **Windows (Visual Studio 2022):**
 
