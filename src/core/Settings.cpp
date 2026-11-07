@@ -44,6 +44,8 @@ std::string SettingsStore::toJson() const {
     j["data"] = {{"keepLogDays", s.keepLogDays}};
     j["leaderboard"] = {{"enabled", s.leaderboardEnabled}, {"asked", s.leaderboardAsked}, {"nickname", s.nickname},
                         {"playerId", s.playerId}};
+    j["updates"] = {{"autoCheck", s.autoCheckUpdates}, {"skipped", s.skippedUpdate}, {"lastCheck", s.lastUpdateCheck},
+                    {"lastRunVersion", s.lastRunVersion}};
     return j.dump(2);
 }
 
@@ -80,6 +82,10 @@ bool SettingsStore::fromJson(const std::string& text) {
     rd(j, "leaderboard", "asked", s.leaderboardAsked);
     rd(j, "leaderboard", "nickname", s.nickname);
     rd(j, "leaderboard", "playerId", s.playerId);
+    rd(j, "updates", "autoCheck", s.autoCheckUpdates);
+    rd(j, "updates", "skipped", s.skippedUpdate);
+    rd(j, "updates", "lastCheck", s.lastUpdateCheck);
+    rd(j, "updates", "lastRunVersion", s.lastRunVersion);
     s.clamp();
     std::lock_guard<std::mutex> lock(m_mutex);
     m_settings = s;

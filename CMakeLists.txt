@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(FurUltimate VERSION 1.2.0 LANGUAGES C CXX RC)
+project(FurUltimate VERSION 1.3.0 LANGUAGES C CXX RC)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -49,7 +49,7 @@ set(ENGINE_SOURCES
   src/hw/HardwareInfo.cpp
   src/data/Result.cpp src/data/Database.cpp
   src/stress/StressEngine.cpp src/bench/BenchmarkEngine.cpp src/bench/AiBench.cpp
-  src/report/PdfWriter.cpp src/report/ReportExporter.cpp src/net/Leaderboard.cpp
+  src/report/PdfWriter.cpp src/report/ReportExporter.cpp src/net/Leaderboard.cpp src/net/Updater.cpp
   src/ui/Fonts.cpp src/ui/Theme.cpp
 )
 add_library(aether_engine STATIC ${ENGINE_SOURCES})
@@ -74,7 +74,7 @@ configure_file(src/net/LeaderboardEmbedded.h.in ${CMAKE_BINARY_DIR}/generated/Le
 target_include_directories(aether_engine PUBLIC third_party third_party/directml)
 target_compile_definitions(aether_engine PUBLIC UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0A00 WINVER=0x0A00
   AETHER_VERSION="${AETHER_VERSION_STRING}")
-target_link_libraries(aether_engine PUBLIC sqlite3 miniz winhttp d3d11 dxgi d2d1 dwrite windowscodecs pdh setupapi ole32 uuid shell32 user32 gdi32 comdlg32 shlwapi dwmapi)
+target_link_libraries(aether_engine PUBLIC sqlite3 miniz winhttp bcrypt d3d11 dxgi d2d1 dwrite windowscodecs pdh setupapi ole32 uuid shell32 user32 gdi32 comdlg32 shlwapi dwmapi)
 if(MSVC)
   target_compile_options(aether_engine PUBLIC /utf-8 /W3 /permissive- /EHsc)
   target_compile_definitions(aether_engine PUBLIC _CRT_SECURE_NO_WARNINGS)

@@ -4,7 +4,7 @@ ManifestDPIAware true
 SetCompressor /SOLID lzma
 
 !ifndef VERSION
-  !define VERSION "1.2.0"
+  !define VERSION "1.3.0"
 !endif
 !ifndef STAGE
   !define STAGE "..\dist\stage"
@@ -35,6 +35,11 @@ VIAddVersionKey /LANG=1055 "LegalCopyright" "Copyright (C) 2026 FurUltimate"
 
 !include "MUI2.nsh"
 !include "x64.nsh"
+!include "FileFunc.nsh"
+!include "LogicLib.nsh"
+
+; Set by "/UPDATE" (in-app updater: silent install, keep the user's shortcut choice, relaunch the app afterwards)
+Var IsUpdate
 
 !define MUI_ICON "..\assets\app.ico"
 !define MUI_UNICON "..\assets\app.ico"
@@ -78,10 +83,54 @@ Function .onInit
   ${EndIf}
   SetRegView 64
   SetShellVarContext all
+  StrCpy $IsUpdate 0
+  ${GetParameters} $R0
+  ClearErrors
+  ${GetOptions} $R0 "/UPDATE" $R1
+  ${IfNot} ${Errors}
+    StrCpy $IsUpdate 1
+  ${EndIf}
   !insertmacro MUI_LANGDLL_DISPLAY
 FunctionEnd
 
+Function .onInstSuccess
+  ${If} $IsUpdate == 1
+    ; Start the updated app through Explorer so it runs with the user's normal (non-elevated) token.
+    Exec '"$WINDIR\explorer.exe" "$INSTDIR\${EXE}"'
+  ${EndIf}
+FunctionEnd
+
 Function CheckRunning
+  ${If} $IsUpdate == 1
+    ; The app closes itself right after starting the update; give it up to 30 s.
+    StrCpy $1 0
+    ${Do}
+      FindWindow $0 "FurUltimateMain" ""
+      ${If} $0 == 0
+        ${Break}
+      ${EndIf}
+      IntOp $1 $1 + 1
+      ${If} $1 > 60
+        ${Break}
+      ${EndIf}
+      Sleep 500
+    ${Loop}
+    ; ...and wait until the process has fully exited and released FurUltimate.exe.
+    StrCpy $1 0
+    ${Do}
+      ClearErrors
+      FileOpen $2 "$INSTDIR\${EXE}" a
+      ${IfNot} ${Errors}
+        FileClose $2
+        ${Break}
+      ${EndIf}
+      IntOp $1 $1 + 1
+      ${If} $1 > 60
+        ${Break}
+      ${EndIf}
+      Sleep 500
+    ${Loop}
+  ${EndIf}
   FindWindow $0 "FurUltimateMain" ""
   StrCmp $0 0 +3
     MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "$(Running)" IDRETRY -2
@@ -99,8 +148,6 @@ Section "$(SecMain)" SEC_MAIN
   File "${STAGE}\THIRD_PARTY_NOTICES.txt"
   SetOutPath "$INSTDIR\docs"
   File "${STAGE}\docs\*.md"
-  SetOutPath "$INSTDIR"
-  File /nonfatal "${STAGE}\leaderboard.json"
   SetOutPath "$INSTDIR"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
@@ -122,6 +169,10 @@ Section "$(SecMain)" SEC_MAIN
 SectionEnd
 
 Section "$(SecDesk)" SEC_DESK
+  ${If} $IsUpdate == 1
+  ${AndIfNot} ${FileExists} "$DESKTOP\FurUltimate.lnk"
+    Return   ; updating: don't add a desktop shortcut the user removed or never chose
+  ${EndIf}
   CreateShortcut "$DESKTOP\FurUltimate.lnk" "$INSTDIR\${EXE}" "" "$INSTDIR\${EXE}" 0
 SectionEnd
 

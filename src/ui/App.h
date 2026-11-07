@@ -16,7 +16,7 @@
 namespace aether {
 
 enum class Page { Stress = 0, Benchmark, Leaderboard, Results, Hardware, Settings, Count };
-enum class Modal { None, ConfirmStress, ConfirmBenchmark, ConfirmClearHistory, ConfirmDelete, About, LeaderboardJoin };
+enum class Modal { None, ConfirmStress, ConfirmBenchmark, ConfirmClearHistory, ConfirmDelete, About, LeaderboardJoin, Update };
 
 class App {
 public:
@@ -75,6 +75,10 @@ public:
     void maybeSubmitLeaderboard(const BenchmarkResult& r);
     void submitLeaderboard(const BenchmarkResult& r);
     void refreshResults();
+    // Updates
+    void checkForUpdates(bool manual);
+    std::string updatePromptedVersion;        // release already offered this session
+    int updateSeenState = -1;                 // last Updater state handled by pollUpdates()
     void markSettingsChanged() { settingsDirty = true; settingsSaveTimer = 0.6f; }
     void applySettings();
     void captureWindow();
@@ -90,6 +94,8 @@ private:
     void frame();
     void drawSidebar(const Rect& r);
     void drawModal();
+    void drawUpdateModal();
+    void pollUpdates();
     void drawBackground();
     void pollEngines();
     void detectHardwareAsync();

@@ -4,6 +4,7 @@
 #include "../../core/Paths.h"
 #include "../../core/Log.h"
 #include "../../net/Leaderboard.h"
+#include "../../net/Updater.h"
 
 namespace aether {
 
@@ -158,6 +159,29 @@ void drawSettingsPage(App& app, Rect area) {
         r = lay.row(T("Varsayılanlara dön"), T("Tüm ayarları ilk değerlerine sıfırlar"), 150);
         if (ui.button("s-reset", T("Sıfırla"), r, ButtonStyle::Ghost)) { s = Settings{}; ui.toast(T("Ayarlar varsayılanlara döndü"), ToastKind::Info); }
     }
+    { // Updates
+        SettingsLayout lay{app, settingsCard(app, R2, T("Güncellemeler"), Icon::Refresh, 214)};
+        ui.toggle("s-upd", lay.row(T("Güncellemeleri otomatik denetle"), T("Açılışta GitHub'daki son sürüme bakar (en fazla saatte bir)"), 60),
+                  s.autoCheckUpdates);
+        UpdateStatus us = Updater::instance().status();
+        std::string state;
+        switch (us.state) {
+            case UpdateState::Checking: state = T("Denetleniyor…"); break;
+            case UpdateState::UpToDate: state = T("Güncel"); break;
+            case UpdateState::Available: state = format(T("Yeni sürüm hazır: %s"), us.release.version.c_str()); break;
+            case UpdateState::Downloading: case UpdateState::Verifying: case UpdateState::Installing: state = T("Güncelleniyor…"); break;
+            case UpdateState::Error: state = us.error; break;
+            default: state = Updater::isInstalledCopy() ? T("Kurulu kopya") : T("Taşınabilir / tek exe"); break;
+        }
+        Rect r = lay.row(format(T("Sürüm %s"), AETHER_VERSION), state, 150);
+        bool avail = us.state == UpdateState::Available;
+        if (avail) {
+            if (ui.button("s-upd-open", T("Güncelle"), r, ButtonStyle::Primary, true, (int)Icon::Refresh)) app.openModal(Modal::Update);
+        } else if (ui.button("s-upd-check", T("Şimdi denetle"), r, ButtonStyle::Secondary, !Updater::instance().active(), (int)Icon::Refresh)) {
+            app.updatePromptedVersion.clear();
+            app.checkForUpdates(true);
+        }
+    }
     float endY = std::max(L.y, R.y);
     ui.endScroll(endY - top + 10);
 
@@ -168,7 +192,8 @@ void drawSettingsPage(App& app, Rect area) {
                    before.showFrameTimeInOverlay != s.showFrameTimeInOverlay || before.benchFullscreen != s.benchFullscreen ||
                    before.warnTempC != s.warnTempC || before.stopTempC != s.stopTempC || before.defaultStressMinutes != s.defaultStressMinutes ||
                    before.confirmIntensive != s.confirmIntensive || before.tdrGuard != s.tdrGuard || before.keepLogDays != s.keepLogDays ||
-                   before.leaderboardEnabled != s.leaderboardEnabled || before.nickname != s.nickname || before.leaderboardAsked != s.leaderboardAsked;
+                   before.leaderboardEnabled != s.leaderboardEnabled || before.nickname != s.nickname || before.leaderboardAsked != s.leaderboardAsked ||
+                   before.autoCheckUpdates != s.autoCheckUpdates;
     if (changed) {
         s.clamp();
         app.applySettings();

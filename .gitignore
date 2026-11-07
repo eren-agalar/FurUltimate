@@ -2,3 +2,4 @@ build*/
 dist/
 *.exe
 leaderboard.json
+__pycache__/

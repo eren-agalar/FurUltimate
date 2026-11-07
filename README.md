@@ -39,6 +39,8 @@ Get the latest build from **[Releases](https://github.com/eren-agalar/FurUltimat
 | `FurUltimate-<version>-win64.exe` | Standalone single-file app. No install; just run it |
 | `FurUltimate-<version>-win64-portable.zip` | Portable folder with the app, docs and leaderboard server schema |
 
+**Automatic updates:** from 1.3.0 on, FurUltimate checks this repository's latest release at launch. If there's a newer version, it shows the release notes and updates itself in-app. The download is verified with SHA-256 before anything is replaced. You can turn the check off in Settings → Updates.
+
 **Requirements:** Windows 10 1903+ or Windows 11 (64-bit) and a Direct3D 11 GPU. The AI test uses the DirectML that ships with Windows. No extra runtimes are needed.
 
 ## Features
@@ -103,7 +105,7 @@ cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
 ```
 
-**Tests:** run `build\aether_tests.exe` on Windows, or `wine build/aether_tests.exe` on Linux. The suite has 25 tests: score formulas, exports, database, settings, themes, shader compilation, stress cancellation, device-lost recovery, an end-to-end benchmark, DirectML worker isolation and leaderboard client integration.
+**Tests:** run `build\aether_tests.exe` on Windows, or `wine build/aether_tests.exe` on Linux. The suite has 26 tests: score formulas, exports, database, settings, themes, shader compilation, stress cancellation, device-lost recovery, an end-to-end benchmark, DirectML worker isolation, the updater (versions, release parsing, SHA-256) and leaderboard client integration.
 
 ### Your own leaderboard server
 Source builds have no leaderboard until you point them at a server. To set one up:
@@ -148,6 +150,8 @@ Son sürümü **[Releases](https://github.com/eren-agalar/FurUltimate/releases/l
 | `FurUltimate-<sürüm>-Setup.exe` | Başlat menüsü kısayolu ve kaldırıcı içeren kurulum paketi (önerilen) |
 | `FurUltimate-<sürüm>-win64.exe` | Tek dosyalık uygulama. Kurulum gerekmez, doğrudan çalıştırılır |
 | `FurUltimate-<sürüm>-win64-portable.zip` | Uygulama, belgeler ve liderlik sunucusu şemasını içeren taşınabilir klasör |
+
+**Otomatik güncelleme:** 1.3.0 ve sonrası, açılışta bu deponun son sürümünü denetler. Yeni sürüm varsa sürüm notlarını gösterir ve uygulamanın içinden güncellenir. İndirilen dosya, hiçbir şey değiştirilmeden önce SHA-256 ile doğrulanır. Denetim Ayarlar → Güncellemeler'den kapatılabilir.
 
 **Gereksinimler:** Windows 10 1903+ veya Windows 11 (64-bit) ve Direct3D 11 destekli bir ekran kartı. AI testi, Windows ile gelen DirectML'i kullanır. Ek bir çalışma zamanı kurmak gerekmez.
 
@@ -213,7 +217,7 @@ cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
 ```
 
-**Testler:** Windows'ta `build\aether_tests.exe`, Linux'ta `wine build/aether_tests.exe` ile çalıştırılır. 25 test vardır: skor formülleri, dışa aktarma, veritabanı, ayarlar, temalar, shader derleme, stres testi iptali, cihaz kaybından kurtarma, uçtan uca benchmark, DirectML alt süreç yalıtımı ve liderlik tablosu istemci entegrasyonu.
+**Testler:** Windows'ta `build\aether_tests.exe`, Linux'ta `wine build/aether_tests.exe` ile çalıştırılır. 26 test vardır: skor formülleri, dışa aktarma, veritabanı, ayarlar, temalar, shader derleme, stres testi iptali, cihaz kaybından kurtarma, uçtan uca benchmark, DirectML alt süreç yalıtımı, güncelleyici (sürüm, release ayrıştırma, SHA-256) ve liderlik tablosu istemci entegrasyonu.
 
 ### Kendi liderlik sunucunuz
 Kaynaktan derlenen sürümde, bir sunucu tanımlanana kadar liderlik tablosu yoktur. Kurmak için:
@@ -229,6 +233,7 @@ Ayrıntılı rehber: [server/leaderboard/README.md](server/leaderboard/README.md
 - [Mimari](docs/ARCHITECTURE.md)
 - [Donanım test prosedürü](docs/HARDWARE_TEST_PROCEDURE.md)
 - [Bilinen sınırlamalar](docs/KNOWN_LIMITATIONS.md)
+- [Sürüm yayımlama (güncelleme için)](docs/RELEASING.md)
 - [Sürüm notları](RELEASE_NOTES.md)
 
 ## Güvenlik

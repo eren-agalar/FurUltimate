@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <string>
 #include <mutex>
 
@@ -38,6 +39,11 @@ struct Settings {
     bool leaderboardAsked = false;        // consent dialog already shown once
     std::string nickname;
     std::string playerId;                 // anonymous random UUID of this installation
+    // Updates (GitHub Releases)
+    bool autoCheckUpdates = true;
+    std::string skippedUpdate;            // version the user chose to skip
+    int64_t lastUpdateCheck = 0;          // unix time of the last automatic check
+    std::string lastRunVersion;           // app version of the previous launch ("updated to X" notice)
 
     void clamp();
 };

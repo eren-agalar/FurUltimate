@@ -1,5 +1,13 @@
 # Sürüm Notları
 
+## 1.3.0 — 2026-11-07
+- **Uygulama içinden güncelleme:** FurUltimate açılışta GitHub'daki son sürümü denetler (en fazla saatte bir). Yeni sürüm varsa sürüm notlarıyla birlikte bildirim gösterir; "Şimdi güncelle" ile indirir, SHA-256 ile doğrular ve kurar.
+  - Kurulu kopya: kurulum sessizce çalışır (yönetici izni istenir), uygulama kapanıp yeni sürümle yeniden açılır.
+  - Tek exe / taşınabilir: exe dosyası yeni sürümle değiştirilir ve uygulama yeniden başlar.
+  - "Daha sonra", "Bu sürümü atla" seçenekleri; kenar çubuğunda "Güncelleme var" rozeti; Ayarlar → Güncellemeler'den otomatik denetimi kapatma ve elle denetleme.
+  - Doğrulama başarısız olursa hiçbir dosya değiştirilmez.
+- Not: 1.2.0'da güncelleme özelliği olmadığı için 1.3.0 bir kez elle kurulmalıdır; sonraki sürümler otomatik gelir.
+
 ## 1.2.0 — 2026-11-07
 - **Yeni ad: FurUltimate** (önceden FurNovaMark). Sonuçlar, ayarlar ve liderlik kimliği ilk açılışta yeni klasöre (`%LOCALAPPDATA%\FurUltimate`) otomatik taşınır.
 - **Yeni logo:** degrade altıgen rozet, canlı alev çekirdeği, dönen enerji halkaları. Kenar çubuğunda animasyonlu; uygulama simgesi, kurulum görselleri ve PDF raporlarında da yeni logo kullanılıyor.

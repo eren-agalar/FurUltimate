@@ -1,4 +1,5 @@
 #include "App.h"
+#include "../net/Updater.h"
 #include "Fonts.h"
 #include "../resource.h"
 #include "../core/Log.h"
@@ -495,6 +496,24 @@ void App::drawSidebar(const Rect& r0) {
         if (i == (int)Page::Stress && stress.busy()) c.fillCircle(it.right() - 16, it.cy(), 3.5f, t.warning);
         if (i == (int)Page::Benchmark && bench.busy()) c.fillCircle(it.right() - 16, it.cy(), 3.5f, t.perf);
     }
+    // Update available pill (above the GPU footer)
+    {
+        UpdateStatus us = Updater::instance().status();
+        bool show = !us.release.version.empty() && isNewerVersion(us.release.version, AETHER_VERSION) &&
+                    us.state != UpdateState::Checking && us.state != UpdateState::UpToDate;
+        if (show) {
+            Rect pr = r0;
+            pr = pr.cutBottom(118 + 52).cutTop(52).inset(12, 6);
+            uint64_t k = ui.id("upd-pill");
+            float h = ui.anim(k ^ 0x1, ui.hovered(pr) ? 1.0f : 0.0f, 18);
+            c.fillRoundGradientH(pr, 12, Color::hex(0xFF5A2E, 0.16f + 0.08f * h), Color::hex(0x8B5CFF, 0.16f + 0.08f * h));
+            c.strokeRound(pr, 12, Color::hex(0xFF6A3D, 0.55f), 1);
+            drawIcon(c, Icon::Refresh, pr.x + 12, pr.cy() - 8, 16, Color::hex(0xFF8A4A), 1.6f);
+            TextStyle st; st.size = 12.5f; st.weight = Weight::SemiBold;
+            c.text(format(T("Güncelleme var · %s"), us.release.version.c_str()), {pr.x + 36, pr.y, pr.w - 40, pr.h}, t.text, st);
+            if (ui.pressedOn(k, pr)) openModal(Modal::Update);
+        }
+    }
     // Footer: live GPU status
     Rect foot = r0;
     foot = foot.cutBottom(118).inset(12, 10);
@@ -523,6 +542,7 @@ void App::drawModal() {
     const Theme& t = Theme::current();
     modalT = ui.anim(ui.id("modalT"), modal != Modal::None ? 1.0f : 0.0f, 16);
     if (modal == Modal::None) return;
+    if (modal == Modal::Update) { drawUpdateModal(); return; }
     Canvas& c = canvas;
     c.fillRect({0, 0, c.width(), c.height()}, Color(0, 0, 0, 0.55f * modalT));
     float w = 540, h = modal == Modal::About ? 340 : modal == Modal::LeaderboardJoin ? 360 : 300;
@@ -626,6 +646,144 @@ void App::drawModal() {
     }
 }
 
+void App::checkForUpdates(bool manual) {
+    if (!manual) {
+        int64_t now = (int64_t)time(nullptr);
+        if (now - settings.lastUpdateCheck < 3600) return;   // automatic checks: at most once per hour
+        settings.lastUpdateCheck = now;
+        markSettingsChanged();
+    }
+    Updater::instance().check(manual);
+}
+
+void App::pollUpdates() {
+    UpdateStatus us = Updater::instance().status();
+    int st = (int)us.state;
+    bool changed = st != updateSeenState;
+    updateSeenState = st;
+    bool busy = stress.busy() || bench.busy();
+    switch (us.state) {
+        case UpdateState::Available:
+            // Offer each new release once per session; automatic checks respect "skip this version".
+            if (updatePromptedVersion != us.release.version && modal == Modal::None && !busy && m_autorun.empty() &&
+                (us.manualCheck || us.release.version != settings.skippedUpdate)) {
+                updatePromptedVersion = us.release.version;
+                openModal(Modal::Update);
+            }
+            break;
+        case UpdateState::UpToDate:
+            if (changed && us.manualCheck) ui.toast(format(T("FurUltimate güncel · sürüm %s"), AETHER_VERSION), ToastKind::Success);
+            break;
+        case UpdateState::Error:
+            if (changed && modal != Modal::Update && (us.manualCheck || !us.release.version.empty()))
+                ui.toast(std::string(T("Güncelleme: ")) + us.error, ToastKind::Warning);
+            break;
+        case UpdateState::RestartPending:
+            if (changed) {
+                LOGI("Closing for update");
+                ShowWindow(m_hwnd, SW_HIDE);   // disappear at once; shutdown (thread joins) finishes in the background
+                SettingsStore::instance().set(settings);
+                SettingsStore::instance().save();
+                settingsDirty = false;
+                PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
+            }
+            break;
+        default: break;
+    }
+}
+
+void App::drawUpdateModal() {
+    const Theme& t = Theme::current();
+    Canvas& c = canvas;
+    Updater& up = Updater::instance();
+    UpdateStatus us = up.status();
+    const ReleaseInfo& rel = us.release;
+    c.fillRect({0, 0, c.width(), c.height()}, Color(0, 0, 0, 0.55f * modalT));
+    float w = 580, h = 460;
+    Rect card{(c.width() - w) / 2, (c.height() - h) / 2 + (1 - modalT) * 16, w, h};
+    c.pushOpacity(modalT);
+    c.fillRound(card.offset(0, 10), 18, Color(0, 0, 0, 0.45f));
+    ui.card(card, 18);
+    Rect in = card.inset(28);
+    // Header: brand mark + title
+    drawLogoMark(c, in.x + 20, in.y + 20, 15, ui.time() * (settings.reduceMotion ? 0.0f : 0.25f));
+    ui.label(rel.version.empty() ? std::string(T("Güncelleme")) : format(T("Yeni sürüm: FurUltimate %s"), rel.version.c_str()),
+             {in.x + 56, in.y - 2, in.w - 56, 26}, t.text, 18, Weight::SemiBold);
+    bool installed = Updater::isInstalledCopy();
+    ui.label(format(T("Yüklü sürüm %s · %s"), AETHER_VERSION, installed ? T("kurulu kopya") : T("taşınabilir / tek exe")),
+             {in.x + 56, in.y + 24, in.w - 56, 18}, t.text3, 12);
+    in.cutTop(62);
+    // Release notes
+    ui.caps(T("Yenilikler"), in.cutTop(18), t.text2);
+    in.cutTop(6);
+    Rect notes = in.cutTop(180);
+    c.fillRound(notes, 12, FG(0.03f));
+    c.strokeRound(notes, 12, t.border, 1);
+    std::string text = releaseNotesForDisplay(rel.notes, settings.language, 560);
+    if (text.empty()) text = T("Bu sürüm için not yok.");
+    TextStyle ns; ns.size = 12.5f; ns.wrap = true; ns.valign = Align::Leading;
+    c.text(text, notes.inset(16, 12), t.text2, ns);
+    in.cutTop(16);
+
+    Rect btns = in.cutBottom(40);
+    Rect info = in;
+    bool close = ui.input().key == VK_ESCAPE;
+    switch (us.state) {
+        case UpdateState::Available: {
+            TextStyle hs; hs.size = 12; hs.wrap = true; hs.valign = Align::Leading;
+            c.text(installed ? T("Kurulum için Windows yönetici izni isteyecek. Uygulama kapanır, güncellenir ve kendiliğinden yeniden açılır. Sonuçlarınız ve ayarlarınız korunur.")
+                             : T("Uygulama dosyası doğrulanmış yeni sürümle değiştirilir ve yeniden başlatılır. Sonuçlarınız ve ayarlarınız korunur."),
+                   {info.x, info.y, info.w, 40}, t.text3, hs);
+            bool busy = stress.busy() || bench.busy();
+            if (ui.button("upd-now", T("Şimdi güncelle"), btns.cutRight(170), ButtonStyle::Primary, !busy, (int)Icon::Refresh)) up.install();
+            btns.cutRight(10);
+            if (ui.button("upd-later", T("Daha sonra"), btns.cutRight(120), ButtonStyle::Ghost)) close = true;
+            if (ui.button("upd-skip", T("Bu sürümü atla"), btns.cutLeft(150), ButtonStyle::Ghost)) {
+                settings.skippedUpdate = rel.version;
+                markSettingsChanged();
+                close = true;
+            }
+            if (busy) ui.label(T("Test çalışırken güncellenemez"), {info.x, info.y + 44, info.w, 16}, t.warning, 12);
+            break;
+        }
+        case UpdateState::Downloading: {
+            float frac = us.total > 0 ? float(double(us.received) / double(us.total)) : 0.0f;
+            ui.label(T("İndiriliyor…"), {info.x, info.y, info.w / 2, 18}, t.text, 13, Weight::SemiBold);
+            ui.label(us.total > 0 ? format("%.1f / %.1f MB · %.0f %%", us.received / 1048576.0, us.total / 1048576.0, frac * 100)
+                                  : format("%.1f MB", us.received / 1048576.0),
+                     {info.x + info.w / 2, info.y, info.w / 2, 18}, t.text2, 12.5f, Weight::Medium, Align::Trailing);
+            ui.progressBar({info.x, info.y + 28, info.w, 6}, us.total > 0 ? frac : std::fmod(ui.time() * 0.5f, 1.0f), Color::hex(0xFF6A3D));
+            if (ui.button("upd-cancel", T("İptal"), btns.cutRight(120), ButtonStyle::Ghost)) up.cancel();
+            close = false;
+            break;
+        }
+        case UpdateState::Verifying:
+        case UpdateState::Installing:
+        case UpdateState::RestartPending:
+            ui.label(us.state == UpdateState::Verifying ? T("SHA-256 doğrulanıyor…")
+                                                        : installed ? T("Kurulum başlatılıyor… onay penceresine izin verin") : T("Yeniden başlatılıyor…"),
+                     {info.x, info.y, info.w, 18}, t.text, 13, Weight::SemiBold);
+            ui.progressBar({info.x, info.y + 28, info.w, 6}, std::fmod(ui.time() * 0.5f, 1.0f), Color::hex(0xFF6A3D));
+            close = false;
+            break;
+        case UpdateState::Error: {
+            TextStyle es; es.size = 12.5f; es.wrap = true; es.valign = Align::Leading;
+            c.text(us.error, {info.x, info.y, info.w, 40}, t.warning, es);
+            if (!rel.version.empty() && ui.button("upd-retry", T("Tekrar dene"), btns.cutRight(140), ButtonStyle::Primary)) up.backToAvailable();
+            btns.cutRight(10);
+            if (!rel.htmlUrl.empty() && ui.button("upd-page", T("Sürüm sayfası"), btns.cutRight(140), ButtonStyle::Secondary, true, (int)Icon::Globe))
+                ShellExecuteW(m_hwnd, L"open", widen(rel.htmlUrl).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+            if (ui.button("upd-close", T("Kapat"), btns.cutLeft(110), ButtonStyle::Ghost)) close = true;
+            break;
+        }
+        default:
+            if (ui.button("upd-close2", T("Kapat"), btns.cutRight(110), ButtonStyle::Ghost)) close = true;
+            break;
+    }
+    c.popOpacity();
+    if (close) modal = Modal::None;
+}
+
 static std::string argValue(const std::wstring& cmd, const wchar_t* key) {
     size_t p = cmd.find(key);
     if (p == std::wstring::npos) return {};
@@ -698,6 +856,7 @@ void App::frame() {
         }
     }
     pollEngines();
+    pollUpdates();
     automationTick(dt);
     if (resultsDirty && db.isOpen()) refreshResults();
     if (settingsDirty) {
@@ -860,6 +1019,10 @@ int App::run(HINSTANCE inst, int show) {
     }
     canvas.setDpi((float)dpi);
     detectHardwareAsync();
+    if (!settings.lastRunVersion.empty() && settings.lastRunVersion != AETHER_VERSION && isNewerVersion(AETHER_VERSION, settings.lastRunVersion))
+        ui.toast(format(T("FurUltimate %s sürümüne güncellendi"), AETHER_VERSION), ToastKind::Success);
+    if (settings.lastRunVersion != AETHER_VERSION) { settings.lastRunVersion = AETHER_VERSION; markSettingsChanged(); }
+    if (settings.autoCheckUpdates && m_autorun.empty()) checkForUpdates(false);
     ShowWindow(m_hwnd, settings.startMaximized ? SW_SHOWMAXIMIZED : show);
     UpdateWindow(m_hwnd);
 
@@ -874,7 +1037,7 @@ int App::run(HINSTANCE inst, int show) {
         if (!m_running) break;
         bool busy = stress.busy() || bench.busy();
         bool newSample = hwReady && TelemetryHub::instance().latest().t != lastSampleT;
-        if (m_needFrame || ui.animating() || busy || newSample || modalT > 0.001f) {
+        if (m_needFrame || ui.animating() || busy || newSample || modalT > 0.001f || (int)Updater::instance().status().state != updateSeenState) {
             m_needFrame = false;
             frame();
             idle = 0;
@@ -886,6 +1049,7 @@ int App::run(HINSTANCE inst, int show) {
     // Safe shutdown: stop workloads, wait for worker threads, flush settings.
     stress.stop(); bench.stop();
     stress.join(); bench.join();
+    Updater::instance().shutdown();
     if (m_hwThread.joinable()) m_hwThread.join();
     TelemetryHub::instance().stop();
     LeaderboardClient::instance().shutdown();

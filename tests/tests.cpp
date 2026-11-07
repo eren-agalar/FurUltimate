@@ -22,6 +22,7 @@
 #include "bench/AiBench.h"
 #include "bench/DmlCompat.h"
 #include "net/Leaderboard.h"
+#include "net/Updater.h"
 #include "ui/Theme.h"
 #include <windows.h>
 #include <atomic>
@@ -583,6 +584,60 @@ TEST(single_test_run_has_no_overall_score) {
 }
 
 // Runs only when a test server is provided: FNM_LB_TEST_URL / FNM_LB_TEST_KEY (see server/leaderboard/README.md).
+TEST(updater_versions_release_parsing_and_hashes) {
+    bool ok = true;
+    int v[3];
+    CHECK(parseVersion("v1.2.3", v) && v[0] == 1 && v[1] == 2 && v[2] == 3);
+    CHECK(parseVersion("1.4", v) && v[0] == 1 && v[1] == 4 && v[2] == 0);
+    CHECK(!parseVersion("latest", v));
+    CHECK(isNewerVersion("v1.3.0", "1.2.0"));
+    CHECK(isNewerVersion("1.10.0", "1.9.9"));
+    CHECK(!isNewerVersion("1.2.0", "1.2.0"));
+    CHECK(!isNewerVersion("1.1.9", "1.2.0"));
+    CHECK(!isNewerVersion("garbage", "1.2.0"));
+
+    const char* json = R"({"tag_name":"v1.4.0","name":"FurUltimate 1.4.0","html_url":"https://github.com/eren-agalar/FurUltimate/releases/tag/v1.4.0",
+        "draft":false,"prerelease":false,"body":"## FurUltimate 1.4.0\n- **Faster** startup\n| a | b |\n\n## Türkçe\n- **Daha hızlı** açılış\n",
+        "assets":[{"name":"FurUltimate-1.4.0-Setup.exe","size":100,"browser_download_url":"https://github.com/eren-agalar/FurUltimate/releases/download/v1.4.0/FurUltimate-1.4.0-Setup.exe",
+                   "digest":"sha256:BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"},
+                  {"name":"FurUltimate-1.4.0-win64.exe","size":200,"browser_download_url":"https://github.com/eren-agalar/FurUltimate/releases/download/v1.4.0/FurUltimate-1.4.0-win64.exe"},
+                  {"name":"SHA256SUMS.txt","size":10,"browser_download_url":"https://github.com/eren-agalar/FurUltimate/releases/download/v1.4.0/SHA256SUMS.txt"}]})";
+    ReleaseInfo rel;
+    CHECK(parseRelease(json, rel));
+    CHECK(rel.version == "1.4.0" && rel.tag == "v1.4.0" && rel.assets.size() == 3);
+    const ReleaseAsset* setup = rel.find("-setup.exe");   // case-insensitive
+    CHECK(setup && setup->sha256 == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    const ReleaseAsset* exe = rel.find("-win64.exe");
+    CHECK(exe && exe->sha256.empty() && exe->size == 200);
+    CHECK(!parseRelease(R"({"tag_name":"v2.0.0","draft":true})", rel));
+    CHECK(!parseRelease(R"({"tag_name":"v2.0.0","prerelease":true})", rel));
+    CHECK(!parseRelease("not json", rel));
+
+    std::string en = releaseNotesForDisplay("## FurUltimate 1.4.0\n- **Faster** startup\n| a | b |\n\n## Türkçe\n- **Daha hızlı** açılış\n", "en", 500);
+    std::string tr = releaseNotesForDisplay("## FurUltimate 1.4.0\n- **Faster** startup\n| a | b |\n\n## Türkçe\n- **Daha hızlı** açılış\n", "tr", 500);
+    CHECK(en.find("Faster startup") != std::string::npos && en.find("Daha") == std::string::npos && en.find('|') == std::string::npos);
+    CHECK(tr.find("Daha hızlı açılış") != std::string::npos && tr.find("Faster") == std::string::npos);
+    CHECK(releaseNotesForDisplay(std::string(2000, 'x'), "en", 100).size() <= 104);
+
+    auto sums = parseSha256Sums("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  FurUltimate-1.4.0-win64.exe\r\n"
+                                "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD *other.zip\nshort line\n");
+    CHECK(sums.size() == 2 && sums["FurUltimate-1.4.0-win64.exe"] == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    CHECK(sums["other.zip"].size() == 64);
+
+    std::wstring f = Paths::root() + L"\\sha_test.bin";
+    CHECK(writeFileAtomic(f, "abc"));
+    CHECK(sha256File(f) == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");   // FIPS 180-2 test vector
+    DeleteFileW(f.c_str());
+    CHECK(sha256File(L"Z:\\does\\not\\exist.bin").empty());
+
+    CHECK(isAllowedDownloadUrl("https://github.com/eren-agalar/FurUltimate/releases/download/v1.4.0/x.exe"));
+    CHECK(isAllowedDownloadUrl("https://GITHUB.com/eren-agalar/furultimate/releases/download/v1.4.0/x.exe"));
+    CHECK(!isAllowedDownloadUrl("https://github.com/someone-else/FurUltimate/releases/download/v1.4.0/x.exe"));
+    CHECK(!isAllowedDownloadUrl("http://github.com/eren-agalar/FurUltimate/releases/download/v1.4.0/x.exe"));
+    CHECK(!isAllowedDownloadUrl("https://evil.example/eren-agalar/FurUltimate/releases/download/x.exe"));
+    return ok;
+}
+
 TEST(leaderboard_client_integration) {
     bool ok = true;
     char url[512] = {}, key[1024] = {};
