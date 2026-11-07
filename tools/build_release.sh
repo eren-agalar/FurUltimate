@@ -41,10 +41,5 @@ with zipfile.ZipFile('../$(basename "$ZIP")', 'w', zipfile.ZIP_DEFLATED) as z:
 python3 tools/make_icon.py assets/app.ico installer docs/images/banner.png >/dev/null
 (cd installer && makensis -V2 -INPUTCHARSET UTF8 -DVERSION="$VERSION" -DSTAGE="../$STAGE" -DOUTFILE="../dist/FurUltimate-${VERSION}-Setup.exe" furultimate.nsi)
 cp "$STAGE/FurUltimate.exe" "dist/FurUltimate-${VERSION}-win64.exe"   # standalone single-file build
-(cd dist && python3 -c "
-import zipfile
-for z, f in [('FurUltimate-${VERSION}-Setup.zip', 'FurUltimate-${VERSION}-Setup.exe'), ('FurUltimate-${VERSION}-win64-exe.zip', 'FurUltimate-${VERSION}-win64.exe')]:
-    with zipfile.ZipFile(z, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as zz: zz.write(f, f)
-")
-(cd dist && sha256sum "FurUltimate-${VERSION}-Setup.zip" "FurUltimate-${VERSION}-win64-exe.zip" "$(basename "$ZIP")" > SHA256SUMS.txt)
+(cd dist && sha256sum "FurUltimate-${VERSION}-Setup.exe" "FurUltimate-${VERSION}-win64.exe" "$(basename "$ZIP")" > SHA256SUMS.txt)
 ls -la dist
